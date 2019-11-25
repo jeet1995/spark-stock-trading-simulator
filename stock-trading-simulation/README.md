@@ -117,14 +117,14 @@ on the dates passed as command-line arguments as mentioned above.
 * Here is the output which depicts a comparison between a greedy model and a Monte-Carlo randomized model with the same investment values 
    
  ````
-    Trading period : 2014-08-01 to 2018-07-20
-    Total investment value : 18130.0
-    Total return of greedy investment : 18124.914981409474
-    Monte Carlo simulation randomization with the same investment value as greedy simulation
-    99 percentile return : 17926.129309524214
-    75 percentile return : 17393.696705211085
-    50 percentile return : 17080.679641882387
-    25 percentile return : 16778.435322771842
+Trading period : 2014-08-01 to 2018-07-20
+Total investment value : 18130.0
+Total return of greedy investment : 18124.914981409474
+Monte Carlo simulation randomization with the same investment value as greedy simulation
+99 percentile return : 17926.129309524214
+75 percentile return : 17393.696705211085
+50 percentile return : 17080.679641882387
+25 percentile return : 16778.435322771842
  ````
    
    
