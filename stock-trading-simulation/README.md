@@ -162,7 +162,7 @@ wherein one evaluates how gains plateau or how losses can be curbed.
 of financial data.
 * More configurability when it comes to building a portfolio - like choosing a list of S&P companies to invest in,  
 using a pre-existing fund rather than a daily fund limit etc.     
-* An issue which I could not fix is running multiple configurations and writing their results in cluster mode although it works in local mode. It kept on stating that the output directory 
+* An issue which I could not fix is running multiple configurations and writing their results in cluster mode (runs one configuration but not more) although it works in local mode. It kept on stating that the output directory 
 is already created even though I have separate folder structures for my simulations through their `simulation-id`'s.     
 * The results in the video and the README do not match due to a glitch when running the application while making the video. It has been rectified in the repository but not in the video.
 
