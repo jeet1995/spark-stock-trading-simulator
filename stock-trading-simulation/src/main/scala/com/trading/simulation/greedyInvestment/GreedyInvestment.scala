@@ -51,6 +51,14 @@ object GreedyInvestment {
     SimulationResult(firstNRDD, returns, totalInvestmentValue, sortedDates, dailyInvestmentLimit, tradingWindow)
   }
 
+  /***
+    * This method takes financialDataRDD which is just a string associated with a stock extracted from the .csv
+    * file stored into an RDD. It groups all possible stock information for a given date.
+    *
+    * @param financialDataRDD Stock information as a string
+    *
+    * @return All stock information for a given date.
+    */
   def getDateToFinancialData(financialDataRDD: RDD[String]): RDD[(Option[LocalDate], Iterable[StockData])] = {
 
     financialDataRDD
@@ -85,6 +93,17 @@ object GreedyInvestment {
 
   }
 
+
+  /***
+    * This method takes all stock information grouped for a given date and makes a decision to invest money
+    * based on the proportional change in value of stock and invests a certain sum of money based on the proportion.
+    *
+    * @param financialDataGroupedByDate Stock information as a string
+    * @param dateMap Dates mapped to their integral rank
+    * @param sortedDates Dates in sorted order
+    *
+    * @return All investment information for a given date.
+    */
   def reactiveInvestment(financialDataGroupedByDate: RDD[(Option[LocalDate], Iterable[StockData])], dateMap: mutable.HashMap[LocalDate, Int], sortedDates: Array[LocalDate]): RDD[(Option[LocalDate], Iterable[InvestmentData])] = {
 
     financialDataGroupedByDate
@@ -105,6 +124,7 @@ object GreedyInvestment {
             stock =>
               val change = stock.getAdjustedClosingPrice - stock.getOpeningPrice
 
+              // Invest only if change is greater than 0
               if (change > 0) {
                 sumChange += change
               }
@@ -131,6 +151,15 @@ object GreedyInvestment {
 
   }
 
+  /***
+    * This method joins two RDDs , @stockDataByDate and @investmentByDateRDD and computes the return for that particular date.
+    * It then reduces returns across all investment dates to compute the net return.
+    *
+    * @param stockDataByDate Stock information as a string
+    * @param investmentDataByDate Dates mapped to their integral rank
+    *
+    * @return Net return.
+    */
   def computePnL(stockDataByDate: RDD[(Option[LocalDate], Iterable[StockData])], investmentDataByDate: RDD[(Option[LocalDate], Iterable[InvestmentData])]): Double = {
 
     stockDataByDate

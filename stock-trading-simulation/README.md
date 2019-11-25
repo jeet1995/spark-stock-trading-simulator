@@ -1,6 +1,6 @@
 CS441 - Homework 2
 ---
-Homework 3 : To gain experience with the Spark computational model in AWS cloud datacenter.
+Homework 3 : To gain experience with the Spark computational model in AWS cloud data center.
 ---
 Name : Abhijeet Mohanty
 ---
@@ -9,7 +9,7 @@ Name : Abhijeet Mohanty
 * As a part of this homework, I have created two simulations - a greedy investment model which makes investment decisions for day `t` 
 based on day `t - 1` stock information and a randomized simulation using the Monte-Carlo approach to generate various scenarios. In order to 
 achieve my goal, I make use of **Apache Spark** to parallelize my computations and the **Alpha Vantage API** to fetch financial data
-upon which the simulation takes decisions on.   
+upon which the simulation takes decisions on. A small demo of my deployment on AWS EMR using AWS S3 for storage [can be found on this link](https://www.youtube.com/watch?v=NT2R0RryLv0&t=481s).  
 
 ### Setup information
 
@@ -25,7 +25,7 @@ upon which the simulation takes decisions on.
     
     `> sbt clean compile assembly`
     
-* In order to fetch financial data, run the following command
+* In order to fetch financial data, run the following command for within the **abhijeet_mohanty_cs441_hw3/stock-trading-simulation** directory
 
     `> sbt "runMain com.trading.simulation.request.StockDataRequestExecutor <start_date> <end_date>"`
     
@@ -34,13 +34,13 @@ upon which the simulation takes decisions on.
 
 * Make sure HDP sandbox is booted up on a distribution of VMWare.
 
-* Next, we need to copy the financial-data into the Hadoop file system as below :
+* Next, we need to copy all files in financial-data into the Hadoop file system as below :
 
     
-    `> scp -P 2222 <local path to financial-data> root@sandbox-hdp.hortonworks.com:~/`
+    `> scp -P 2222 <local path to financial-data>/*.csv root@sandbox-hdp.hortonworks.com:~/`
     
 
-* Next, we need to copy the artifact JAR generated as `abhijeet_mohanty_cs441_hw2/publication-statistics-computation/target/scala-2.12/publication-statistics-computation-assembly-0.1.jar` into the Hadoop file system as below
+* Next, we need to copy the artifact JAR generated as `abhijeet_mohanty_cs441_hw3/stock-trading-simulation/target/scala-2.11/stock-trading-simulation-assembly-0.1.jar` into the Hadoop file system as below
     
     
     `> scp -P 2222 <local path to executable JAR> root@sandbox-hdp.hortonworks.com:~/`
@@ -58,18 +58,26 @@ upon which the simulation takes decisions on.
     `> hdfs dfs -mkdir <input path to financial-data>`
     
 
-* Next, we put the financial-data files in the directory we created in the preceding step 
+* Next, we put the financial-data files (.csv) in the directory we created in the preceding step 
     
     
     `> hdfs dfs -put <input path to financial-data>/`
     
-
-* Executing the JAR
+* Executing the spark job
     
-    `> hadoop jar <input path to executable JAR> <input path to dblp.xml>`
+   * Execution in cluster mode
+    
+    `> spark-submit --deploy-mode cluster stock-trading-simulation-assembly-0.1.jar <path to input files> <path to output> localMode=false`
+ 
+   * Execution in local mode
+    
+    `> spark-submit stock-trading-simulation-assembly-0.1.jar <path to input files> <path to output> localMode=true`
+     
+    
+   * Ensure to specify a trailing `/` when specifying the input or the output path. 
 
 * Viewing the results
-
+    * The results will be output in the path `<path to output>/results/`
 
 ### Spark Job simulations
 
@@ -77,7 +85,7 @@ upon which the simulation takes decisions on.
 
     * In this investment strategy, a trading window and an amount to be invested per day are first defined.
     * This trading window is basically the time period between present and a date in the past such that the 
-      difference between these two days is the trading window.
+      no. of trading days these two days is the trading window.
     * The amount invested per day is an arbitrarily chosen value.
     * How this model works, albeit unsuccessfully as it results in significant losses is that an investment decision
       is made on the previous trading day's stock opening and closing price.
@@ -85,15 +93,61 @@ upon which the simulation takes decisions on.
       negative for a stock, that particular stock is discarded.
     * `StockData` encapsulates all the stock information for a given data and company whereas `InvestmentData` encapsulates
       the investment information for a given stock on a given investment date.
-    * The total returns are then computed by joining the RDD's corresponding to the stock data and the investment data for
+    * The total returns are then computed by joining the RDD's `financialDataByDateRDD` & `investmentDataByDateRDD` corresponding to the stock data and the investment data for
       a given date. The contents of this RDD is then reduced to return the net return.
-    * The total invested amount is nothing but daily investment value * no. of days traded on. This total invest amount is used 
+    * The total invested amount is nothing but `daily investment value * no. of days` traded on. This total invested amount is used 
       in the Monte-Carlo simulation.
 
 * Monte-Carlo simulation
 
     * Here, a trading date is picked up at random and the total investment value is split up across stocks and the returns are recorded.
+    * The trading date and the return for that date is recorded and stored in a data frame.
     * Then returns at 4 points are taken - the 99th percentile, 75th percentile, 50th percentile and the 25th percentile.
     * This computation shows that a randomized model performs better than the majority of financial models.
+
+### Alpha Vantage API
+* In order to obtain historical and real time data on stocks, I make use of the Alpha Vantage API for a given list of
+S&P symbols such as `GOOGL, INTC, KO, SAP`. 
+* The `StockDataRequestExecutor` class is responsible for hitting this API and storing the response in a .csv file, depending
+on the dates passed as command-line arguments as mentioned above.  
+
+
+
+### Results
+
+* Here is the output which depicts a comparison between a greedy model and a Monte-Carlo randomized model with the same investment values 
+   
+ ````
+       Trading period : 2014-08-01 to 2018-07-20
+       Total investment value : 18130.0
+       Total return of greedy investment : 5178.547137545564
+       Monte Carlo simulation randomization with the same investment value as greedy simulation
+       99 percentile return : 17905.533834194175
+       75 percentile return : 17402.432104421874
+       50 percentile return : 17097.520837822336
+       25 percentile return : 16769.99546029915
+ ````
+   
+   
+   ````
+        Trading period : 2017-07-25 to 2018-07-20
+        Total investment value : 4480.0
+        Total return of greedy investment : 1280.1420639518617
+        Monte Carlo simulation randomization with the same investment value as greedy simulation
+        99 percentile return : 4439.393908333582
+        75 percentile return : 4355.790427542337
+        50 percentile return : 4330.934827897693
+        25 percentile return : 4315.3247390061315
+   ````
+
+### Future improvements
+
+* The greedy model could be combined with a randomized model of selecting stocks and distributed across several multiverses
+wherein one evaluates how gains plateau or how losses can be curbed.
+* Stock information instead of being loaded into .csv files could be loaded into dataframes which would mimic a sort of streaming
+of financial data.
+* More configurability when it comes to building a portfolio - like choosing a list of S&P companies to invest in,  
+using a pre-existing fund rather than a daily fund limit etc.     
      
+
 

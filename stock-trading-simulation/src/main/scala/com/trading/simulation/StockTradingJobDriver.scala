@@ -1,7 +1,5 @@
 package com.trading.simulation
 
-import java.io.File
-
 import com.trading.simulation.greedyInvestment.GreedyInvestment
 import com.trading.simulation.monteCarlo.MonteCarloRunner
 import com.trading.simulation.utils.SimulationResult
@@ -13,10 +11,18 @@ import org.apache.spark.{SparkConf, SparkContext}
 
 import scala.collection.JavaConverters._
 
+/**
+  * This singleton class represents the entry point for the Spark application.
+  * */
 object StockTradingJobDriver extends LazyLogging {
 
   def main(args: Array[String]): Unit = {
     logger.info("Starting stock trading job driver")
+
+    if (args.length < 2) {
+      logger.error("Two arguments corresponding to the input and output paths are to be specified.")
+      System.exit(-1)
+    }
 
     // Load application config
     val applicationConfig = ConfigFactory.load().getConfig("application-conf")
@@ -25,32 +31,40 @@ object StockTradingJobDriver extends LazyLogging {
     // Run the spark job
     simulationConfigs.foreach {
       simulationConfig =>
-        runSimulation(applicationConfig, simulationConfig)
+
+        val localMode = !(args.length == 3 && args(2).split("=")(1).toBoolean == false)
+
+        runSimulation(applicationConfig, simulationConfig, args(0), args(1), localMode)
+
     }
   }
 
-  private def runSimulation(applicationConfig: Config, simulationConfig: Config): Unit = {
+  private def runSimulation(applicationConfig: Config, simulationConfig: Config, inputPath: String, outputPath: String, localMode: Boolean): Unit = {
 
     val sparkConf = new SparkConf().setAppName(applicationConfig.getString("spark-application-name"))
 
-    sparkConf.setMaster("local[*]")
-
-    val sparkSession = SparkSession.builder.master("local[*]").getOrCreate
+    if (localMode) {
+      sparkConf.setMaster("local[*]")
+    }
+    val sparkSession = SparkSession.builder.getOrCreate
 
     val sparkContext = SparkContext.getOrCreate(sparkConf)
 
-    val financialDataRDD: RDD[String] = sparkContext.textFile("file:///Users/SubrataMohanty/Documents/abhijeet_mohanty_cs441_hw3/stock-trading-simulation/financial-data/*.csv")
+    // Load .csv files
+    val financialDataRDD: RDD[String] = sparkContext.textFile(inputPath + "*.csv")
 
+    // Greedy investment results
     val simulationResult = GreedyInvestment.run(financialDataRDD, sparkContext, simulationConfig)
 
+    // Monte-Carlo results
     val randomizedInvestmentResults = MonteCarloRunner.run(simulationResult.financialDataRDD, simulationResult.totalInvestmentValue, sparkSession)
 
-    writeResult(simulationResult, randomizedInvestmentResults, sparkContext, simulationConfig)
+    writeResult(simulationResult, randomizedInvestmentResults, sparkContext, simulationConfig, outputPath)
 
     sparkContext.stop
   }
 
-  private def writeResult(result: SimulationResult, randomizedInvestmentResults: Array[Double], sparkContext: SparkContext, simulationConfig: Config): Unit = {
+  private def writeResult(result: SimulationResult, randomizedInvestmentResults: Array[Double], sparkContext: SparkContext, simulationConfig: Config, outputPath: String): Unit = {
 
     val tradingPeriodRDD = sparkContext.parallelize(Seq("Trading period : " + result.sortedDates(result.sortedDates.length - 1) + " to " + result.sortedDates(0)))
     val totalInvestmentRDD = sparkContext.parallelize(Seq("Total investment value : " + result.totalInvestmentValue))
@@ -62,7 +76,6 @@ object StockTradingJobDriver extends LazyLogging {
     val thirdQuartileReturnsRDD = sparkContext.parallelize(Seq("50 percentile return : " + randomizedInvestmentResults(2)))
     val fourthQuartileReturnsRDD = sparkContext.parallelize(Seq("25 percentile return : " + randomizedInvestmentResults(3)))
 
-
     tradingPeriodRDD
       .union(totalInvestmentRDD)
       .union(totalReturnRDD)
@@ -71,8 +84,8 @@ object StockTradingJobDriver extends LazyLogging {
       .union(secondQuartileReturnsRDD)
       .union(thirdQuartileReturnsRDD)
       .union(fourthQuartileReturnsRDD)
-      .coalesce(1, true)
-      .saveAsTextFile("file:///Users/SubrataMohanty/Documents/abhijeet_mohanty_cs441_hw3/results" + File.separator + "result" + simulationConfig.getString("simulation-id"))
+      .repartition(1)
+      .saveAsTextFile(outputPath + "result" + "-" + simulationConfig.getString("simulation-id"))
   }
 
 }

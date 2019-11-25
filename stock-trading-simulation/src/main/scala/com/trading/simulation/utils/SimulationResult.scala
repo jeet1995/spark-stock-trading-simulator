@@ -6,7 +6,7 @@ import com.trading.simulation.request.StockData
 import org.apache.spark.rdd.RDD
 
 /**
-  * This class represents
+  * This class encapsulates values relevant to the simulation result.
   * */
 case class SimulationResult(financialDataRDD: RDD[(Option[LocalDate], Iterable[StockData])],
                             returns: Double,
