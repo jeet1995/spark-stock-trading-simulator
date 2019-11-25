@@ -1,4 +1,4 @@
-CS441 - Homework 2
+CS441 - Homework 3
 ---
 Homework 3 : To gain experience with the Spark computational model in AWS cloud data center.
 ---
