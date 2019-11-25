@@ -38,7 +38,7 @@ object GreedyInvestment {
         dateToIdxMap.put(date, dateToIdxMap.size)
     }
 
-    val investmentByDateRDD = reactiveInvestment(sparkContext.parallelize(dateToFinancialDataRDD.take(tradingWindow)), dateToIdxMap, sortedDates)
+    val investmentByDateRDD = reactiveInvestment(sparkContext.parallelize(dateToFinancialDataRDD.take(tradingWindow)), dateToIdxMap, sortedDates, dailyInvestmentLimit)
 
     val firstNRDD = sparkContext.parallelize(dateToFinancialDataRDD.take(tradingWindow))
 
@@ -104,7 +104,7 @@ object GreedyInvestment {
     *
     * @return All investment information for a given date.
     */
-  def reactiveInvestment(financialDataGroupedByDate: RDD[(Option[LocalDate], Iterable[StockData])], dateMap: mutable.HashMap[LocalDate, Int], sortedDates: Array[LocalDate]): RDD[(Option[LocalDate], Iterable[InvestmentData])] = {
+  def reactiveInvestment(financialDataGroupedByDate: RDD[(Option[LocalDate], Iterable[StockData])], dateMap: mutable.HashMap[LocalDate, Int], sortedDates: Array[LocalDate], dailyInvestmentLimit: Double): RDD[(Option[LocalDate], Iterable[InvestmentData])] = {
 
     financialDataGroupedByDate
 
@@ -138,7 +138,7 @@ object GreedyInvestment {
               // Invest if and only if the stock gains in the day
               if (change > 0) {
                 val dateIdx = dateMap.get(date)
-                investmentDataArray += InvestmentData(date, sortedDates(dateIdx.get + 1), stock.getStockSymbol, change / sumChange * 10.0)
+                investmentDataArray += InvestmentData(date, sortedDates(dateIdx.get + 1), stock.getStockSymbol, change / sumChange * dailyInvestmentLimit)
               }
           }
 

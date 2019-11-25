@@ -87,7 +87,7 @@ upon which the simulation takes decisions on. A small demo of my deployment on A
     * This trading window is basically the time period between present and a date in the past such that the 
       no. of trading days these two days is the trading window.
     * The amount invested per day is an arbitrarily chosen value.
-    * How this model works, albeit unsuccessfully as it results in significant losses is that an investment decision
+    * How this model works, albeit unsuccessfully as it results in  losses is that an investment decision
       is made on the previous trading day's stock opening and closing price.
     * Differences are summed up across stocks and then proportionately money is invested. In case, the difference is
       negative for a stock, that particular stock is discarded.
@@ -103,7 +103,6 @@ upon which the simulation takes decisions on. A small demo of my deployment on A
     * Here, a trading date is picked up at random and the total investment value is split up across stocks and the returns are recorded.
     * The trading date and the return for that date is recorded and stored in a data frame.
     * Then returns at 4 points are taken - the 99th percentile, 75th percentile, 50th percentile and the 25th percentile.
-    * This computation shows that a randomized model performs better than the majority of financial models.
 
 ### Alpha Vantage API
 * In order to obtain historical and real time data on stocks, I make use of the Alpha Vantage API for a given list of
@@ -118,26 +117,26 @@ on the dates passed as command-line arguments as mentioned above.
 * Here is the output which depicts a comparison between a greedy model and a Monte-Carlo randomized model with the same investment values 
    
  ````
-       Trading period : 2014-08-01 to 2018-07-20
-       Total investment value : 18130.0
-       Total return of greedy investment : 5178.547137545564
-       Monte Carlo simulation randomization with the same investment value as greedy simulation
-       99 percentile return : 17905.533834194175
-       75 percentile return : 17402.432104421874
-       50 percentile return : 17097.520837822336
-       25 percentile return : 16769.99546029915
+    Trading period : 2014-08-01 to 2018-07-20
+    Total investment value : 18130.0
+    Total return of greedy investment : 18124.914981409474
+    Monte Carlo simulation randomization with the same investment value as greedy simulation
+    99 percentile return : 17926.129309524214
+    75 percentile return : 17393.696705211085
+    50 percentile return : 17080.679641882387
+    25 percentile return : 16778.435322771842
  ````
    
    
    ````
-        Trading period : 2017-07-25 to 2018-07-20
-        Total investment value : 4480.0
-        Total return of greedy investment : 1280.1420639518617
-        Monte Carlo simulation randomization with the same investment value as greedy simulation
-        99 percentile return : 4439.393908333582
-        75 percentile return : 4355.790427542337
-        50 percentile return : 4330.934827897693
-        25 percentile return : 4315.3247390061315
+    Trading period : 2016-12-16 to 2018-07-20
+    Total investment value : 2170.0
+    Total return of greedy investment : 2170.2023516104964
+    Monte Carlo simulation randomization with the same investment value as greedy simulation
+    99 percentile return : 2157.255482529495
+    75 percentile return : 2102.9590197613393
+    50 percentile return : 2086.6468425756034
+    25 percentile return : 2071.7119333557675
    ````
 
 ### Future improvements
@@ -148,6 +147,6 @@ wherein one evaluates how gains plateau or how losses can be curbed.
 of financial data.
 * More configurability when it comes to building a portfolio - like choosing a list of S&P companies to invest in,  
 using a pre-existing fund rather than a daily fund limit etc.     
-     
-
+* An issue which I could not fix is running multiple configurations and writing their results in cluster mode although it works in local mode.     
+* The results in the video and the README do not match due to a glitch when running the application while making the video. It has been rectified in the repository but not in the video.
 
