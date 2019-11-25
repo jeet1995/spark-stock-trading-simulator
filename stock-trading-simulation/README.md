@@ -105,18 +105,33 @@ upon which the simulation takes decisions on. A small demo of my deployment on A
     * Then returns at 4 points are taken - the 99th percentile, 75th percentile, 50th percentile and the 25th percentile.
 
 ### Alpha Vantage API
-* In order to obtain historical and real time data on stocks, I make use of the Alpha Vantage API for a given list of
+* In order to obtain historical and real time data on stocks, I make use of the [Alpha Vantage API](https://www.alphavantage.co/documentation/) for a given list of
 S&P symbols such as `GOOGL, INTC, KO, SAP`. 
 * The `StockDataRequestExecutor` class is responsible for hitting this API and storing the response in a .csv file, depending
 on the dates passed as command-line arguments as mentioned above.  
+* The request body which I build is as follows : 
 
+````
+request-body = {
+
+  uri = "https://www.alphavantage.co/query"
+  company-stock-list = [SAP, INTC, KO, GOOGL]
+
+  request-params = {
+    datatype = csv
+    apikey = 1D4RH4TSOM8E7O4F
+    outputsize = full
+    function = TIME_SERIES_DAILY_ADJUSTED
+  }
+}
+````
 
 
 ### Results
 
 * Here is the output which depicts a comparison between a greedy model and a Monte-Carlo randomized model with the same investment values 
    
- ````
+````
 Trading period : 2014-08-01 to 2018-07-20
 Total investment value : 18130.0
 Total return of greedy investment : 18124.914981409474
@@ -125,19 +140,19 @@ Monte Carlo simulation randomization with the same investment value as greedy si
 75 percentile return : 17393.696705211085
 50 percentile return : 17080.679641882387
 25 percentile return : 16778.435322771842
- ````
+````
    
    
-   ````
-    Trading period : 2016-12-16 to 2018-07-20
-    Total investment value : 2170.0
-    Total return of greedy investment : 2170.2023516104964
-    Monte Carlo simulation randomization with the same investment value as greedy simulation
-    99 percentile return : 2157.255482529495
-    75 percentile return : 2102.9590197613393
-    50 percentile return : 2086.6468425756034
-    25 percentile return : 2071.7119333557675
-   ````
+````
+Trading period : 2016-12-16 to 2018-07-20
+Total investment value : 2170.0
+Total return of greedy investment : 2170.2023516104964
+Monte Carlo simulation randomization with the same investment value as greedy simulation
+99 percentile return : 2157.255482529495
+75 percentile return : 2102.9590197613393
+50 percentile return : 2086.6468425756034
+25 percentile return : 2071.7119333557675
+````
 
 ### Future improvements
 
@@ -147,6 +162,7 @@ wherein one evaluates how gains plateau or how losses can be curbed.
 of financial data.
 * More configurability when it comes to building a portfolio - like choosing a list of S&P companies to invest in,  
 using a pre-existing fund rather than a daily fund limit etc.     
-* An issue which I could not fix is running multiple configurations and writing their results in cluster mode although it works in local mode.     
+* An issue which I could not fix is running multiple configurations and writing their results in cluster mode although it works in local mode. It kept on stating that the output directory 
+is already created even though I have separate folder structures for my simulations through their `simulation-id`'s.     
 * The results in the video and the README do not match due to a glitch when running the application while making the video. It has been rectified in the repository but not in the video.
 
