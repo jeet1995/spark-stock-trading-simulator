@@ -1,0 +1,9 @@
+Hello abhijeet,
+
+Your hw3 is graded and your total grade is 9.5% + 3% bonus.
+
+-0.5% for missing concrete unit tests. Apart from that good job!
+
+Regards,
+Mohammed Siddiq
+
